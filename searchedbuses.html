@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search Results - PrimeRoutes</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<style>
+body{font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#84d7e1,#e27f74);min-height:100vh;color:#333;}
+.route-card{background:white;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 6px 20px rgba(0,0,0,.1);transition:0.3s;}
+.route-card:hover{transform:translateY(-5px);box-shadow:0 10px 25px rgba(0,0,0,.15);cursor:pointer;}
+.btn-primary{background:linear-gradient(90deg,#f6e27a,#f06292);border:none;font-weight:600;}
+.btn-primary:hover{background:linear-gradient(90deg,#f06292,#f6e27a);}
+footer{background:linear-gradient(90deg,#004aad,#f06292);color:white;padding:20px 0;text-align:center;}
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-light bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="main page.html" style="color:#f18eda;">PrimeRoutes</a>
+    <div id="userNav"></div>
+  </div>
+</nav>
+
+<main class="container my-5">
+  <h2 class="mb-4 text-center">Search Results</h2>
+  <div id="resultsContainer" class="row"></div>
+</main>
+
+<footer>
+  © 2025 PrimeRoutes
+</footer>
+
+<script>
+// Check authentication
+function checkAuth() {
+  const userId = localStorage.getItem('userId');
+  if (!userId) {
+    alert('Please login to continue.');
+    window.location.href = 'login.html';
+    return false;
+  }
+  return true;
+}
+
+// Navbar
+function updateNavbar() {
+  const userNav = document.getElementById('userNav');
+  const userName = localStorage.getItem('userName');
+  if(userName){
+    userNav.innerHTML = `<span class="me-3">Welcome, ${userName}</span>
+      <button class="btn btn-outline-secondary" onclick="logout()">Logout</button>`;
+  }else{
+    userNav.innerHTML = `<a href="login.html" class="btn btn-outline-primary me-2">Login</a>
+      <a href="register.html" class="btn btn-primary">Register</a>`;
+  }
+}
+function logout(){
+  localStorage.removeItem('userName');
+  localStorage.removeItem('userId');
+  localStorage.removeItem('userRole');
+  updateNavbar();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  if (!checkAuth()) return;
+  updateNavbar();
+  loadBuses();
+});
+
+// Get search parameters from URL or localStorage
+let fromParam, toParam, dateParam;
+const urlParams = new URLSearchParams(window.location.search);
+fromParam = urlParams.get('from')?.toLowerCase() || '';
+toParam = urlParams.get('to')?.toLowerCase() || '';
+dateParam = urlParams.get('date') || '';
+
+if (!fromParam || !toParam || !dateParam) {
+  const searchParams = JSON.parse(localStorage.getItem('searchParams') || '{}');
+  fromParam = searchParams.from?.toLowerCase() || '';
+  toParam = searchParams.to?.toLowerCase() || '';
+  dateParam = searchParams.date || '';
+}
+
+async function loadBuses() {
+  try {
+    const response = await fetch(`/api/search-buses?from=${encodeURIComponent(fromParam)}&to=${encodeURIComponent(toParam)}&date=${dateParam}`);
+    const buses = await response.json();
+
+    // Store buses in localStorage for persistence
+    localStorage.setItem('searchResults', JSON.stringify(buses));
+
+    displayBuses(buses);
+  } catch (error) {
+    console.error('Error loading buses:', error);
+    // Fallback to localStorage if available
+    const cachedBuses = JSON.parse(localStorage.getItem('searchResults') || '[]');
+    if (cachedBuses.length > 0) {
+      displayBuses(cachedBuses);
+      alert('Showing cached results due to network error.');
+    } else {
+      document.getElementById('resultsContainer').innerHTML = `<p class="text-center fs-5 mt-4">Error loading buses. Please try again.</p>`;
+    }
+  }
+}
+
+function displayBuses(buses) {
+  const container = document.getElementById('resultsContainer');
+  if (!buses || buses.length === 0) {
+    container.innerHTML = `<p class="text-center fs-5 mt-4">No buses found for your search.</p>`;
+  } else {
+    buses.forEach(bus => {
+      const div = document.createElement('div');
+      div.className = 'col-md-4';
+      div.innerHTML = `
+        <div class="route-card">
+          <h5>${bus.route_from} → ${bus.route_to}</h5>
+          <p><strong>Bus Type:</strong> ${bus.bus_type}</p>
+          <p><strong>Departure:</strong> ${new Date(bus.departure_time).toLocaleString()}</p>
+          <p><strong>Arrival:</strong> ${new Date(bus.arrival_time).toLocaleString()}</p>
+          <p><strong>Price:</strong> ₹${bus.price}</p>
+          <p><strong>Company:</strong> ${bus.operator}</p>
+          <button class="btn btn-primary w-100 mt-2" onclick='selectBus(${bus.id})'>Book Now</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
+}
+
+function selectBus(busId){
+  localStorage.setItem('selectedBusId', busId);
+  window.location.href = 'seat-selection.html';
+}
+</script>
+</body>
+</html>

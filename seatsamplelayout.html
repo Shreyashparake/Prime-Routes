@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrimeRoutes - Select Your Seat</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #84d7e1, #e27f74);
+      color: #fff;
+    }
+
+    .container {
+      padding: 40px 20px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .bus-info {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 20px;
+      text-align: center;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .bus-info p {
+      margin: 0;
+      font-weight: 500;
+    }
+
+    .seat-layout {
+      display: grid;
+      grid-template-columns: repeat(5, 60px); /* 2+aisle+2 layout */
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .seat {
+      width: 60px;
+      height: 60px;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #f6e27a, #f06292);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: 0.3s;
+      color: #fff;
+    }
+
+    .seat:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+
+    .seat.selected {
+      background: linear-gradient(145deg, #004aad, #f06292);
+      box-shadow: 0 0 15px rgba(255,255,255,0.8);
+    }
+
+    .seat.occupied {
+      background: #555;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .aisle {
+      background: transparent;
+      cursor: default;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .legend div {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      color: #fff;
+    }
+
+    .legend span {
+      width: 25px;
+      height: 25px;
+      display: inline-block;
+      border-radius: 6px;
+    }
+
+    .btn-book {
+      display: block;
+      width: 250px;
+      margin: 0 auto;
+      padding: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 12px;
+      background: linear-gradient(90deg, #f6e27a, #f06292);
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn-book:hover {
+      background: linear-gradient(90deg, #f06292, #f6e27a);
+      transform: translateY(-2px);
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Select Your Seat</h2>
+
+    <!-- Bus Info -->
+    <div class="bus-info">
+      <p><strong>Bus:</strong> Mumbai → Pune</p>
+      <p><strong>Date:</strong> 11-10-2025</p>
+      <p><strong>Time:</strong> 08:00 AM</p>
+      <p><strong>Price:</strong> ₹500 per seat</p>
+    </div>
+
+    <!-- Seat Layout -->
+    <div class="seat-layout" id="seatLayout">
+      <!-- 50 seats in 2x2 layout with aisle in middle -->
+      <!-- Each row: 2 seats left, 1 aisle, 2 seats right -->
+      <script>
+        const seatLayout = document.getElementById('seatLayout');
+        const rows = 13; // roughly 50 seats (13 rows x 4 seats ~52)
+        const leftSeats = ['A','B'];
+        const rightSeats = ['C','D'];
+        const occupiedSeats = ['1A','3B','5C','7D','10A']; // example occupied
+        let seatCount = 1;
+
+        for(let r=1; r<=rows; r++){
+          leftSeats.forEach(letter => {
+            const seatNum = r + letter;
+            const div = document.createElement('div');
+            div.className = 'seat';
+            if(occupiedSeats.includes(seatNum)) div.classList.add('occupied');
+            div.dataset.seat = seatNum;
+            div.innerText = seatNum;
+            seatLayout.appendChild(div);
+          });
+
+          // aisle placeholder
+          const aisle = document.createElement('div');
+          aisle.className = 'aisle';
+          seatLayout.appendChild(aisle);
+
+          rightSeats.forEach(letter => {
+            const seatNum = r + letter;
+            const div = document.createElement('div');
+            div.className = 'seat';
+            if(occupiedSeats.includes(seatNum)) div.classList.add('occupied');
+            div.dataset.seat = seatNum;
+            div.innerText = seatNum;
+            seatLayout.appendChild(div);
+          });
+        }
+      </script>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div><span style="background: linear-gradient(145deg, #f6e27a, #f06292);"></span> Available</div>
+      <div><span style="background: linear-gradient(145deg, #004aad, #f06292);"></span> Selected</div>
+      <div><span style="background: #555;"></span> Occupied</div>
+    </div>
+
+    <!-- Book Button -->
+    <button class="btn-book" id="bookBtn">Book Selected Seats</button>
+  </div>
+
+  <script>
+    // Seat selection logic
+    const seats = document.querySelectorAll('.seat:not(.occupied)');
+    const selectedSeats = new Set();
+
+    seats.forEach(seat => {
+      seat.addEventListener('click', () => {
+        const seatNumber = seat.dataset.seat;
+        if (selectedSeats.has(seatNumber)) {
+          selectedSeats.delete(seatNumber);
+          seat.classList.remove('selected');
+        } else {
+          selectedSeats.add(seatNumber);
+          seat.classList.add('selected');
+        }
+      });
+    });
+
+    document.getElementById('bookBtn').addEventListener('click', () => {
+      if (selectedSeats.size === 0) return alert('Please select at least one seat.');
+      alert('Selected Seats: ' + Array.from(selectedSeats).join(', '));
+      // Here you can integrate with backend booking API
+    });
+  </script>
+
+</body>
+</html>

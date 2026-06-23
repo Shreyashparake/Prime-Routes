@@ -1,0 +1,21 @@
+{
+  "name": "primeroutes-backend",
+  "version": "1.0.0",
+  "description": "Backend for PrimeRoutes bus booking portal",
+  "main": "node.js",
+  "type": "module",
+  "scripts": {
+    "start": "node node.js",
+    "dev": "nodemon node.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.5",
+    "body-parser": "^1.20.2",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

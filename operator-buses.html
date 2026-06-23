@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operator Added Buses - PrimeRoutes</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f5f5f5;
+    }
+
+    .header {
+        background-color: #d84e55;
+        color: white;
+        padding: 10px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .search-summary {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .bus-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: box-shadow 0.3s;
+    }
+    .bus-card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .bus-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .bus-operator {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 10px;
+    }
+
+    .bus-rating {
+        color: #ffc107;
+        margin-bottom: 10px;
+    }
+
+    .bus-time {
+        font-weight: 600;
+        color: #333;
+        font-size: 1.1rem;
+    }
+
+    .bus-duration {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .price {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #d84e55;
+    }
+
+    .seats-available {
+        color: #28a745;
+        font-size: 0.9rem;
+    }
+
+    .btn-select {
+        background-color: #d84e55;
+        border: none;
+        color: white;
+        border-radius: 5px;
+        font-weight: 600;
+        padding: 10px 20px;
+        transition: background-color 0.3s;
+    }
+    .btn-select:hover {
+        background-color: #c0392b;
+    }
+
+    .amenities {
+        font-size: 0.8rem;
+        color: #666;
+    }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<nav class="navbar navbar-expand-lg header">
+  <div class="container">
+    <a class="navbar-brand" href="main page.html">PrimeRoutes</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" href="main page.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="operator-dashboard.html">Dashboard</a></li>
+      </ul>
+      <div id="userNavOperator" class="ms-auto d-flex align-items-center"></div>
+    </div>
+  </div>
+</nav>
+
+<div class="container my-4">
+
+    <!-- Summary -->
+    <div class="search-summary">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5>Operator Added Buses</h5>
+                <p id="busCount">Loading buses...</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="add-bus.html" class="btn btn-outline-primary">Add New Bus</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bus List -->
+    <div id="busList">
+        <!-- Buses will be loaded here -->
+    </div>
+</div>
+
+<script>
+    let allBuses = [];
+
+    // Login check
+    if (!localStorage.getItem('operatorId')) {
+      window.location.href = 'operator-dashboard.html';
+      return;
+    }
+
+    // Update navbar
+    function updateNavbarOperator() {
+      const userNav = document.getElementById('userNavOperator');
+      const operatorName = localStorage.getItem('operatorName');
+
+      if (operatorName) {
+        userNav.innerHTML = `
+          <span class="navbar-text me-3 text-white">Welcome, ${operatorName}!</span>
+          <button class="btn btn-outline-light btn-sm" onclick="logoutOperator()">Logout</button>
+        `;
+      } else {
+        userNav.innerHTML = `
+          <a href="operator-dashboard.html" class="nav-link text-white">Login</a>
+        `;
+      }
+    }
+
+    function logoutOperator() {
+      localStorage.removeItem('operatorId');
+      localStorage.removeItem('operatorName');
+      updateNavbarOperator();
+      alert('Logged out successfully!');
+      window.location.href = 'operator-dashboard.html';
+    }
+
+    // Call on load
+    document.addEventListener('DOMContentLoaded', updateNavbarOperator);
+
+    // Load buses from localStorage
+    function loadBuses() {
+        const addedBuses = JSON.parse(localStorage.getItem('addedBuses') || '[]');
+        const operatorId = localStorage.getItem('operatorId');
+
+        // Filter buses added by this operator
+        const operatorBuses = addedBuses.filter(bus => bus.operator_id == operatorId);
+
+        if (operatorBuses.length > 0) {
+            allBuses = operatorBuses;
+            displayBuses(operatorBuses);
+            document.getElementById('busCount').textContent = `${operatorBuses.length} Buses added`;
+        } else {
+            document.getElementById('busList').innerHTML = '<p class="text-center text-muted">No buses added yet. <a href="add-bus.html">Add your first bus</a>.</p>';
+            document.getElementById('busCount').textContent = '0 Buses added';
+        }
+    }
+
+    function displayBuses(buses) {
+        const busList = document.getElementById('busList');
+        busList.innerHTML = '';
+
+        buses.forEach(bus => {
+            const departureTime = new Date(bus.departure_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const arrivalTime = new Date(bus.arrival_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            const busCard = document.createElement('div');
+            busCard.className = 'bus-card';
+            busCard.innerHTML = `
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h5 class="bus-title">${bus.bus_type} - ${bus.company_name}</h5>
+                        <div class="bus-rating">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i> 4.5
+                        </div>
+                        <div class="amenities">
+                            ${bus.amenities ? bus.amenities.split(', ').map(amenity => {
+                                if (amenity === 'WiFi') return '<i class="fas fa-wifi me-2"></i>';
+                                if (amenity === 'Water Bottle') return '<i class="fas fa-utensils me-2"></i>';
+                                if (amenity === 'Entertainment') return '<i class="fas fa-music me-2"></i>';
+                                if (amenity === 'Charging Point') return '<i class="fas fa-plug me-2"></i>';
+                                return amenity;
+                            }).join('') : '<i class="fas fa-wifi me-2"></i><i class="fas fa-utensils me-2"></i><i class="fas fa-plug me-2"></i>Live Tracking'}
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="bus-time">${departureTime}</div>
+                        <div class="bus-duration">--h --m</div>
+                        <div class="bus-time">${arrivalTime}</div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <div class="price">₹${bus.price}</div>
+                        <div class="seats-available">${bus.capacity} Seats available</div>
+                    </div>
+                    <div class="col-md-1 text-end">
+                        <button class="btn btn-select" onclick="editBus('${bus.id || 'local'}')">Edit</button>
+                    </div>
+                </div>
+            `;
+            busList.appendChild(busCard);
+        });
+    }
+
+    function editBus(busId) {
+        // For now, just alert - can be enhanced to edit functionality
+        alert('Edit functionality coming soon!');
+    }
+
+    // Load buses on page load
+    loadBuses();
+</script>
+
+</body>
+</html>

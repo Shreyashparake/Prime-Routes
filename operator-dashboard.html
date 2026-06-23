@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operator Dashboard - PrimeRoutes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #84d7e1, #e27f74);
+      color: #333;
+      min-height: 100vh;
+    }
+    .header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 15px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand-title {
+      font-size: 2rem;
+      background: linear-gradient(90deg, #f6e27a, #f06292, #c73642);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 900;
+      letter-spacing: 1px;
+      display: inline-block;
+    }
+    .dashboard-section {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+      padding: 30px;
+      margin: 30px 0;
+    }
+    .form-control, .form-select {
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: #43bcc7;
+      box-shadow: 0 0 0 0.25rem rgba(67, 188, 199, 0.25);
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, #f6e27a, #f06292);
+      border: none;
+      font-weight: 600;
+      transition: 0.3s ease;
+      border-radius: 10px;
+      padding: 10px 25px;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(90deg, #f06292, #f6e27a);
+      transform: translateY(-2px);
+    }
+    .btn-outline-primary {
+      border: 2px solid;
+      border-image: linear-gradient(90deg, #f6e27a, #f06292) 1;
+      color: #c73642;
+      font-weight: 600;
+      border-radius: 10px;
+      padding: 10px 25px;
+    }
+    .btn-outline-primary:hover {
+      background: linear-gradient(90deg, #f6e27a, #f06292);
+      color: white;
+      transform: translateY(-2px);
+    }
+    footer {
+      background: linear-gradient(90deg, #004aad, #f06292);
+      color: white;
+      padding: 25px 0;
+      margin-top: 40px;
+    }
+    footer a {
+      color: #ffeb3b;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <h1 class="brand-title">PrimeRoutes</h1>
+        </div>
+        <div class="col-md-6 text-end">
+          <a href="main page.html" class="btn btn-outline-primary me-2">
+            <i class="bi bi-house-door-fill"></i> Home
+          </a>
+          <button id="logoutBtn" class="btn btn-outline-primary" style="display: none;" onclick="logout()">
+            <i class="bi bi-box-arrow-right"></i> Logout
+          </button>
+          <a href="add-bus.html" class="btn btn-outline-primary">
+            <i class="bi bi-plus-circle"></i> Add Bus
+          </a>
+          <a href="operator-buses.html" class="btn btn-outline-primary">
+            <i class="bi bi-list-ul"></i> My Buses
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container my-4">
+    <!-- Login Section -->
+    <div id="loginSection" class="dashboard-section text-center">
+      <h2 class="mb-4">Operator Login</h2>
+      <form id="loginForm">
+        <div class="row justify-content-center">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="loginEmail" class="form-label">Email Address</label>
+              <input type="email" class="form-control" id="loginEmail" value="bypass@gmail.com" required>
+            </div>
+            <div class="mb-3">
+              <label for="loginPassword" class="form-label">Password</label>
+              <input type="password" class="form-control" id="loginPassword" value="12345678" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div id="dashboardSection" class="dashboard-section" style="display: none;">
+      <h2 class="text-center mb-4">Welcome, <span id="operatorName"></span></h2>
+
+      <!-- Add Bus Form -->
+      <h3 class="mb-3">Add New Bus</h3>
+      <form id="addBusForm">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="busType" class="form-label">Bus Type *</label>
+            <select class="form-select" id="busType" required>
+              <option value="">Select Bus Type</option>
+              <option value="AC Sleeper">AC Sleeper</option>
+              <option value="AC Semi-Sleeper">AC Semi-Sleeper</option>
+              <option value="Non-AC Sleeper">Non-AC Sleeper</option>
+              <option value="Non-AC Semi-Sleeper">Non-AC Semi-Sleeper</option>
+              <option value="Volvo">Volvo</option>
+              <option value="Luxury">Luxury</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="capacity" class="form-label">Capacity *</label>
+            <input type="number" class="form-control" id="capacity" min="1" required>
+          </div>
+          <div class="col-md-6">
+            <label for="routeFrom" class="form-label">From *</label>
+            <input type="text" class="form-control" id="routeFrom" placeholder="e.g., Mumbai" required>
+          </div>
+          <div class="col-md-6">
+            <label for="routeTo" class="form-label">To *</label>
+            <input type="text" class="form-control" id="routeTo" placeholder="e.g., Pune" required>
+          </div>
+          <div class="col-md-6">
+            <label for="departureTime" class="form-label">Departure Time *</label>
+            <input type="datetime-local" class="form-control" id="departureTime" required>
+          </div>
+          <div class="col-md-6">
+            <label for="arrivalTime" class="form-label">Arrival Time *</label>
+            <input type="datetime-local" class="form-control" id="arrivalTime" required>
+          </div>
+          <div class="col-md-6">
+            <label for="price" class="form-label">Price per Seat *</label>
+            <input type="number" class="form-control" id="price" min="0" step="0.01" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Amenities</label>
+            <div class="row">
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="wifi" value="WiFi">
+                  <label class="form-check-label" for="wifi">WiFi</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="water" value="Water Bottle">
+                  <label class="form-check-label" for="water">Water Bottle</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="entertainment" value="Entertainment">
+                  <label class="form-check-label" for="entertainment">Entertainment</label>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="charging" value="Charging Point">
+                  <label class="form-check-label" for="charging">Charging Point</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="text-center">
+    <p>© 2025 PrimeRoutes. All rights reserved.</p>
+    <p><a href="main page.html">Back to Home</a></p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    let operatorData = null;
+
+    // Check if operator is logged in on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      const operatorId = localStorage.getItem('operatorId');
+      const operatorName = localStorage.getItem('operatorName');
+      if (operatorId && operatorName) {
+        operatorData = { id: operatorId, company_name: operatorName };
+        document.getElementById('operatorName').textContent = operatorName;
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('dashboardSection').style.display = 'block';
+        document.getElementById('logoutBtn').style.display = 'inline-block';
+      }
+    });
+
+    // Login form submit
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const response = await fetch('http://localhost:3000/api/operator/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          operatorData = result;
+          localStorage.setItem('operatorId', result.id);
+          localStorage.setItem('operatorName', result.company_name);
+          document.getElementById('operatorName').textContent = result.company_name;
+          document.getElementById('loginSection').style.display = 'none';
+          document.getElementById('dashboardSection').style.display = 'block';
+          document.getElementById('logoutBtn').style.display = 'inline-block';
+        } else {
+          alert(result.error);
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    });
+
+    // Add bus form submit
+    document.getElementById('addBusForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!operatorData) {
+        alert('Please login first');
+        return;
+      }
+
+      const amenities = [];
+      if (document.getElementById('wifi').checked) amenities.push('WiFi');
+      if (document.getElementById('water').checked) amenities.push('Water Bottle');
+      if (document.getElementById('entertainment').checked) amenities.push('Entertainment');
+      if (document.getElementById('charging').checked) amenities.push('Charging Point');
+
+      const busData = {
+        operator_id: operatorData.id,
+        bus_type: document.getElementById('busType').value,
+        capacity: parseInt(document.getElementById('capacity').value),
+        route_from: document.getElementById('routeFrom').value,
+        route_to: document.getElementById('routeTo').value,
+        departure_time: document.getElementById('departureTime').value,
+        arrival_time: document.getElementById('arrivalTime').value,
+        price: parseFloat(document.getElementById('price').value),
+        amenities: amenities.join(', ')
+      };
+
+      try {
+        const response = await fetch('http://localhost:3000/api/add-bus', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(busData)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          alert(result.message);
+          // Store the added bus in localStorage for searched buses
+          const addedBuses = JSON.parse(localStorage.getItem('addedBuses') || '[]');
+          // Add company_name from operatorData
+          busData.company_name = operatorData.company_name;
+          addedBuses.push(busData);
+          localStorage.setItem('addedBuses', JSON.stringify(addedBuses));
+          document.getElementById('addBusForm').reset();
+        } else {
+          alert(result.error);
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    });
+
+    // Logout
+    function logout() {
+      operatorData = null;
+      document.getElementById('loginSection').style.display = 'block';
+      document.getElementById('dashboardSection').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = 'none';
+      document.getElementById('loginForm').reset();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seat Selection - PrimeRoutes</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg,#84d7e1,#e27f74);
+    min-height: 100vh;
+    color: #333;
+}
+.seat {
+    width: 50px;
+    height: 50px;
+    margin: 5px;
+    border-radius: 6px;
+    background: #ccc;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+    transition: 0.2s;
+}
+.seat.selected {
+    background: #f06292;
+    color: white;
+}
+.seat.occupied {
+    background: #888;
+    cursor: not-allowed;
+    color: white;
+}
+.seat-row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+.aisle {
+    width: 20px; /* space for aisle between left and right seats */
+}
+.btn-primary {
+    background: linear-gradient(90deg,#f6e27a,#f06292);
+    border: none;
+    font-weight: 600;
+}
+.btn-primary:hover {
+    background: linear-gradient(90deg,#f06292,#f6e27a);
+}
+.bus-info {
+    text-align: center;
+    margin-bottom: 20px;
+}
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-light bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="index.html" style="color:#f18eda;">PrimeRoutes</a>
+    <div id="userNav"></div>
+  </div>
+</nav>
+
+<main class="container my-5">
+  <h2 class="mb-4 text-center">Select Your Seats</h2>
+  <div id="busInfo" class="bus-info"></div>
+  <div id="seatsContainer" class="d-flex flex-column align-items-center"></div>
+  <div class="text-center mt-4">
+    <button class="btn btn-primary" id="proceedBtn">Proceed to Booking</button>
+  </div>
+</main>
+
+<script>
+// Check authentication
+function checkAuth() {
+  const userId = localStorage.getItem('userId');
+  if (!userId) {
+    alert('Please login to continue.');
+    window.location.href = 'login.html';
+    return false;
+  }
+  return true;
+}
+
+// Navbar logic
+function updateNavbar() {
+    const userNav = document.getElementById('userNav');
+    const userName = localStorage.getItem('userName');
+    if(userName){
+        userNav.innerHTML = `<span class="me-3">Welcome, ${userName}</span>
+        <button class="btn btn-outline-secondary" onclick="logout()">Logout</button>`;
+    } else {
+        userNav.innerHTML = `<a href="login.html" class="btn btn-outline-primary me-2">Login</a>
+        <a href="register.html" class="btn btn-primary">Register</a>`;
+    }
+}
+function logout() {
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userRole');
+    updateNavbar();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  if (!checkAuth()) return;
+  updateNavbar();
+  loadBusAndSeats();
+});
+
+// Load bus details and seats
+async function loadBusAndSeats() {
+  const selectedBusId = localStorage.getItem('selectedBusId');
+  if (!selectedBusId) {
+    alert('No bus selected!');
+    window.location.href = 'main page.html';
+    return;
+  }
+
+  try {
+    // Fetch bus details by ID
+    const response = await fetch(`/api/bus/${selectedBusId}`);
+    const selectedBus = await response.json();
+
+    if (!selectedBus) {
+      alert('Bus not found!');
+      window.location.href = 'main page.html';
+      return;
+    }
+
+    // Display bus info
+    document.getElementById('busInfo').innerHTML = `
+      <h5>${selectedBus.route_from} → ${selectedBus.route_to} | ${selectedBus.bus_type}</h5>
+      <p>Price per seat: ₹${selectedBus.price}</p>
+    `;
+
+    // Fetch occupied seats
+    const occupiedResponse = await fetch(`/api/bus/${selectedBusId}/occupied-seats`);
+    const occupiedSeats = await occupiedResponse.json();
+
+    // Seat selection logic (4 seats per row: 2 left + aisle + 2 right)
+    const totalSeats = selectedBus.capacity;
+    const seatsContainer = document.getElementById('seatsContainer');
+    let selectedSeats = [];
+
+    const seatsPerRow = 4; // 2 left + 2 right
+    const rows = Math.ceil(totalSeats / seatsPerRow);
+
+    for(let i=0; i<rows; i++){
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'seat-row';
+
+        for(let j=0; j<seatsPerRow; j++){
+            const seatIndex = i * seatsPerRow + j + 1;
+            if(seatIndex > totalSeats) break;
+
+            // Add aisle after second seat
+            if(j === 2){
+                const aisleDiv = document.createElement('div');
+                aisleDiv.className = 'aisle';
+                rowDiv.appendChild(aisleDiv);
+            }
+
+            const seat = document.createElement('div');
+            seat.className = 'seat' + (occupiedSeats.includes(seatIndex) ? ' occupied' : '');
+            seat.textContent = seatIndex;
+
+            if(!occupiedSeats.includes(seatIndex)){
+                seat.addEventListener('click', () => {
+                    if(selectedSeats.includes(seatIndex)){
+                        selectedSeats = selectedSeats.filter(s => s !== seatIndex);
+                        seat.classList.remove('selected');
+                    } else {
+                        selectedSeats.push(seatIndex);
+                        seat.classList.add('selected');
+                    }
+                });
+            }
+
+            rowDiv.appendChild(seat);
+        }
+
+        seatsContainer.appendChild(rowDiv);
+    }
+
+    // Proceed button
+    document.getElementById('proceedBtn').addEventListener('click', ()=>{
+        if(selectedSeats.length === 0){
+            alert('Select at least one seat!');
+            return;
+        }
+        localStorage.setItem('selectedSeats', JSON.stringify(selectedSeats));
+        localStorage.setItem('selectedBus', JSON.stringify(selectedBus));
+        window.location.href = 'booking.html';
+    });
+
+  } catch (error) {
+    console.error('Error loading bus:', error);
+    alert('Error loading bus details. Please try again.');
+    window.location.href = 'main page.html';
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Confirmation - PrimeRoutes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+</head>
+<body>
+<nav class="navbar navbar-light bg-white shadow-sm">
+  <div class="container"><a class="navbar-brand" href="index.html">PrimeRoutes</a></div>
+</nav>
+
+<main class="container my-4">
+  <div id="summary"></div>
+  <div class="text-end mt-3">
+    <button id="confirmBtn" class="btn btn-success">Confirm & Generate Ticket</button>
+    <a href="booking.html" class="btn btn-outline-secondary">Back</a>
+  </div>
+</main>
+
+<script>
+  const booking = JSON.parse(localStorage.getItem('bookingDetails') || 'null');
+  if(!booking){ alert('No booking found'); window.location.href='index.html'; }
+
+  const summaryEl = document.getElementById('summary');
+  const seatsHTML = (booking.seats||[]).join(', ');
+  summaryEl.innerHTML = `
+    <div class="card p-3">
+      <h5>Booking Summary</h5>
+      <p><strong>Bus:</strong> ${booking.bus.bus_type} — ${booking.bus.company_name}</p>
+      <p><strong>Route:</strong> ${booking.bus.route_from} → ${booking.bus.route_to}</p>
+      <p><strong>Date:</strong> ${booking.date}</p>
+      <p><strong>Seats:</strong> ${seatsHTML}</p>
+      <p><strong>Passenger:</strong> ${booking.passenger.name} (${booking.passenger.phone})</p>
+      <p><strong>Total:</strong> ₹${booking.totalPrice.toFixed(2)}</p>
+    </div>
+  `;
+
+  document.getElementById('confirmBtn').addEventListener('click', ()=>{
+    // create ticket
+    const ticketId = 'PR' + Date.now();
+    const ticket = {
+      ticketId: ticketId,
+      createdAt: new Date().toISOString(),
+      bus: booking.bus,
+      date: booking.date,
+      seats: booking.seats,
+      passenger: booking.passenger,
+      totalPrice: booking.totalPrice
+    };
+    localStorage.setItem('ticket', JSON.stringify(ticket));
+    // append to history
+    const history = JSON.parse(localStorage.getItem('ticketHistory')||'[]');
+    history.push(ticket);
+    localStorage.setItem('ticketHistory', JSON.stringify(history));
+    // clear bookingDetails & selectedBus if desired
+    localStorage.removeItem('bookingDetails');
+    localStorage.removeItem('selectedBus');
+    // go to ticket
+    window.location.href = 'ticket.html';
+  });
+</script>
+</body>
+</html>

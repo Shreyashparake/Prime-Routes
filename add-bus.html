@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Add Bus - PrimeRoutes</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<style>
+  body{font-family:'Poppins',sans-serif;background:linear-gradient(135deg,#84d7e1,#e27f74);min-height:100vh;}
+  .card{border-radius:12px;}
+</style>
+</head>
+<body>
+
+<nav class="navbar navbar-light bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="searchbuses.html">PrimeRoutes</a>
+    <div></div>
+  </div>
+</nav>
+
+<main class="container my-5">
+  <div class="card p-4">
+    <h4 class="mb-3">Add New Bus</h4>
+    <form id="addBusForm">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Bus Type</label>
+          <select id="busType" class="form-select" required>
+            <option value="">Select...</option>
+            <option>AC Sleeper</option><option>AC Semi-Sleeper</option>
+            <option>Non-AC Sleeper</option><option>Volvo</option><option>Luxury</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Capacity</label>
+          <input id="capacity" type="number" min="1" class="form-control" required/>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">From</label>
+          <input id="routeFrom" class="form-control" required/>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">To</label>
+          <input id="routeTo" class="form-control" required/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Departure (datetime-local)</label>
+          <input id="departureTime" type="datetime-local" class="form-control" required/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Arrival (datetime-local)</label>
+          <input id="arrivalTime" type="datetime-local" class="form-control" required/>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Price per Seat (₹)</label>
+          <input id="price" type="number" step="0.01" min="0" class="form-control" required/>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Company Name</label>
+          <input id="companyName" class="form-control" required/>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Amenities (tick)</label>
+          <div class="d-flex gap-3">
+            <div><input id="wifi" type="checkbox"/> <label>WiFi</label></div>
+            <div><input id="water" type="checkbox"/> <label>Water</label></div>
+            <div><input id="ent" type="checkbox"/> <label>Entertainment</label></div>
+            <div><input id="charge" type="checkbox"/> <label>Charging</label></div>
+          </div>
+        </div>
+        <div class="col-12 text-end">
+          <button class="btn btn-primary" type="submit">Add Bus</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script>
+document.getElementById('addBusForm').addEventListener('submit', (e)=>{
+  e.preventDefault();
+
+  const amenities = [];
+  if(document.getElementById('wifi').checked) amenities.push('WiFi');
+  if(document.getElementById('water').checked) amenities.push('Water Bottle');
+  if(document.getElementById('ent').checked) amenities.push('Entertainment');
+  if(document.getElementById('charge').checked) amenities.push('Charging Point');
+
+  const busData = {
+    id: Date.now(), // unique id
+    companyName: document.getElementById('companyName').value.trim(),
+    bus_type: document.getElementById('busType').value,
+    capacity: parseInt(document.getElementById('capacity').value,10),
+    route_from: document.getElementById('routeFrom').value.trim(),
+    route_to: document.getElementById('routeTo').value.trim(),
+    departure_time: document.getElementById('departureTime').value,
+    arrival_time: document.getElementById('arrivalTime').value,
+    price: parseFloat(document.getElementById('price').value),
+    amenities: amenities.join(', ')
+  };
+
+  // Save to localStorage
+  let buses = JSON.parse(localStorage.getItem('buses') || '[]');
+  buses.push(busData);
+  localStorage.setItem('buses', JSON.stringify(buses));
+
+  alert('Bus added successfully!');
+  e.target.reset();
+});
+</script>
+
+</body>
+</html>
